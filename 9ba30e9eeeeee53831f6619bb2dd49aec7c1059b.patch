@@ -1,0 +1,41 @@
+From 9ba30e9eeeeee53831f6619bb2dd49aec7c1059b Mon Sep 17 00:00:00 2001
+From: Bastien Nocera <hadess@hadess.net>
+Date: Fri, 2 Dec 2022 10:32:51 +0100
+Subject: [PATCH] main: Update info-cleanup code from GNOME
+
+Update from the latest gnome-control-center version.
+---
+ src/info-cleanup.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/src/info-cleanup.c b/src/info-cleanup.c
+index 98c99e7..7a05f68 100644
+--- a/src/info-cleanup.c
++++ b/src/info-cleanup.c
+@@ -35,14 +35,16 @@ prettify_info (const char *info)
+   int   i;
+   static const ReplaceStrings rs[] = {
+     { "Mesa DRI ", ""},
+-    { "Intel[(]R[)]", "Intel\302\256"},
+-    { "Core[(]TM[)]", "Core\342\204\242"},
+-    { "Atom[(]TM[)]", "Atom\342\204\242"},
+-    { "Gallium .* on (AMD .*)", "\\1"},
+-    { "(AMD .*) [(].*", "\\1"},
+-    { "(AMD [A-Z])(.*)", "\\1\\L\\2\\E"},
+-    { "AMD", "AMD\302\256"},
++    { "Mesa Intel", "Intel"},
++    { "[(]R[)]", "\302\256"},
++    { "[(](tm|TM)[)]", "\342\204\242"},
++    { "(ATI|EPYC|AMD FX|Radeon|Ryzen|Threadripper|GeForce RTX) ", "\\1\342\204\242 "},
++    { "Gallium \\d+\\.\\d+ on (.*)", "\\1"},
++    { " CPU| Processor| \\S+-Core| @ \\d+\\.\\d+GHz", ""},
++    { " x86|/MMX|/SSE2|/PCIe", ""},
++    { " [(][^)]*(DRM|MESA|LLVM)[^)]*[)]?", ""},
+     { "Graphics Controller", "Graphics"},
++    { ".*llvmpipe.*", "Software Rendering"},
+   };
+ 
+   if (*info == '\0')
+-- 
+GitLab
+

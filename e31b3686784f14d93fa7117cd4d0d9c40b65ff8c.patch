@@ -1,0 +1,77 @@
+From e31b3686784f14d93fa7117cd4d0d9c40b65ff8c Mon Sep 17 00:00:00 2001
+From: Bastien Nocera <hadess@hadess.net>
+Date: Thu, 28 Apr 2022 19:10:36 +0200
+Subject: [PATCH] main: Add Vulkan driver filtering
+
+For machines with dual-GPUs by 2 different vendors, setting the
+VK_LOADER_DRIVER_SELECT envvar reduces the GPUs it can detect to those
+of that vendor, effectively forcing a particular GPU to be chosen.
+
+For machines with dual-non-Mesa-GPUs, the variable will have no effect,
+and things will work as if no selection had been made, just like for
+NVidia GPUs.
+
+Note that this will only work when the VulkanLoader in the application's
+libraries are new enough to include this change:
+https://github.com/KhronosGroup/Vulkan-Loader/pull/984
+
+Closes: #23
+---
+ src/switcheroo-control.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/src/switcheroo-control.c b/src/switcheroo-control.c
+index 6720d69..d40ecac 100644
+--- a/src/switcheroo-control.c
++++ b/src/switcheroo-control.c
+@@ -231,12 +231,33 @@ setup_dbus (ControlData *data,
+ 	return TRUE;
+ }
+ 
++static const char *
++get_vk_driver_match (const char *driver)
++{
++	struct {
++		const char *kernel_driver;
++		const char *match;
++	} matches[] = {
++		{ "i915", "*intel*" },
++		{ "nvidia", "*nvidia*" },
++		{ "radeon", "*radeon*" }
++	};
++	guint i;
++
++	for (i = 0; i < G_N_ELEMENTS(matches); i++) {
++		if (g_strcmp0 (driver, matches[i].kernel_driver) == 0)
++			return matches[i].match;
++	}
++	return NULL;
++}
++
+ static GPtrArray *
+ get_card_env (GUdevClient *client,
+ 	      GUdevDevice *dev)
+ {
+ 	GPtrArray *array;
+ 	g_autoptr(GUdevDevice) parent = NULL;
++	const char *vk_driver_match;
+ 
+ 	array = g_ptr_array_new_full (0, g_free);
+ 
+@@ -268,6 +289,13 @@ get_card_env (GUdevClient *client,
+ 		}
+ 	}
+ 
++	/* XXX: this doesn't work with multi-nvidia setups */
++	vk_driver_match = get_vk_driver_match (g_udev_device_get_driver (parent));
++	if (vk_driver_match != NULL) {
++		g_ptr_array_add (array, g_strdup ("VK_LOADER_DRIVER_SELECT"));
++		g_ptr_array_add (array, g_strdup (vk_driver_match));
++	}
++
+ 	if (array->len == 0) {
+ 		g_ptr_array_free (array, TRUE);
+ 		return NULL;
+-- 
+GitLab
+

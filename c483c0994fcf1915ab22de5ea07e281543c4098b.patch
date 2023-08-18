@@ -1,0 +1,39 @@
+From c483c0994fcf1915ab22de5ea07e281543c4098b Mon Sep 17 00:00:00 2001
+From: Bastien Nocera <hadess@hadess.net>
+Date: Fri, 1 Jul 2022 11:41:55 +0200
+Subject: [PATCH] main: Fix GCC warning
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+In file included from /usr/include/glib-2.0/glib.h:114,
+                 from ../src/info-cleanup.c:21:
+In function ‘g_autoptr_cleanup_generic_gfree’,
+    inlined from ‘info_cleanup’ at ../src/info-cleanup.c:123:20:
+/usr/include/glib-2.0/glib/glib-autocleanups.h:28:3: warning: ‘pretty’ may be used uninitialized [-Wmaybe-uninitialized]
+   28 |   g_free (*pp);
+      |   ^~~~~~~~~~~~
+../src/info-cleanup.c: In function ‘info_cleanup’:
+../src/info-cleanup.c:123:20: note: ‘pretty’ was declared here
+  123 |   g_autofree char *pretty;
+      |                    ^~~~~~
+---
+ src/info-cleanup.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/info-cleanup.c b/src/info-cleanup.c
+index 33bf1d9..98c99e7 100644
+--- a/src/info-cleanup.c
++++ b/src/info-cleanup.c
+@@ -120,7 +120,7 @@ remove_duplicate_whitespace (const char *old)
+ char *
+ info_cleanup (const char *input)
+ {
+-  g_autofree char *pretty;
++  g_autofree char *pretty = NULL;
+ 
+   pretty = prettify_info (input);
+   return remove_duplicate_whitespace (pretty);
+-- 
+GitLab
+
