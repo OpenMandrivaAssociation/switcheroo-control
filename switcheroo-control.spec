@@ -14,6 +14,7 @@ BuildRequires: meson ninja
 BuildRequires: pkgconfig(glib-2.0)
 BuildRequires: pkgconfig(gio-2.0)
 BuildRequires: pkgconfig(gudev-1.0)
+BuildRequires: pkgconfig(systemd) systemd
 
 %description
 D-Bus service to check the availability of dual-GPU
